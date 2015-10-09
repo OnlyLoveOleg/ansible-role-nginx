@@ -1,0 +1,34 @@
+---
+# ansible_distribution_release variable
+#
+# CenOS 7     - Core
+# RedHat 6    - Santiago
+# RedHat 7    - Maipo
+# Ubuntu 14   - trusty
+- name: Check for supported operating system on target
+  fail:
+    msg: "The operating system of the target machine ({{ inventory_hostname }}) is not currently supported."
+  when: ansible_distribution_release not in ['trusty']
+
+#- name: include os specific variables
+#  include_vars: "{{ ansible_os_family }}/variables.yml"
+
+- name: Include Debian specific tasks when installing from package
+  include: Debian-Package.yml
+  when: ansible_os_family == 'Debian' and nginx_install.package is defined and nginx_cfg_dir is defined
+
+#- name: include os specific variables for building from source
+#  include_vars: "{{ ansible_os_family }}/SRC/variables.yml"
+#  when: nginx.install == "source"
+
+#- name: Include Debian specific tasks when installing from source
+#  include: Debian-SRC.yml
+#  when: ansible_os_family == "Debian" and nginx.install == "source"
+
+#- name: Include RedHat specific tasks
+#  include: RedHat.yml
+#  when: ansible_os_family == 'RedHat'
+
+#- name: Include Suse specific tasks
+#  include: Suse.yml
+#  when: ansible_os_family == 'Suse'

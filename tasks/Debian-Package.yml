@@ -1,0 +1,63 @@
+---
+- name: Debian | Make sure the ansible required dependencies are installed
+  apt: >
+   pkg=python-pycurl
+   update_cache=yes
+   state=latest
+
+- name: Debian | Add the nginx PPA repository
+  apt_repository: >
+   repo=ppa:nginx/stable
+
+- name: Debian | Install nginx
+  apt: >
+   pkg={{ nginx_install.package }}
+   update_cache=yes
+   state=present
+
+- name: Debian | Copy the main configuration file
+  template: >
+   src={{ nginx_cfg_dir }}/nginx.conf
+   dest=/etc/nginx/nginx.conf
+   owner=root group=root mode=0644
+  notify: restart nginx
+
+- name: Debian | Copy Sites Enabled
+  template: >
+   src={{ item }}
+   dest=/etc/nginx/sites-enabled/
+   owner=root group=root mode=0644
+  with_fileglob: "{{ nginx_cfg_dir }}/sites-enabled/*"
+  notify: restart nginx
+
+- name: Debian | Copy config files from conf.d/*.conf
+  copy: >
+   src={{ item }}
+   dest=/etc/nginx/conf.d/
+  with_fileglob: "{{ nginx_cfg_dir }}/conf.d/*.conf"
+  notify: restart nginx
+
+- name: Debian | Create Directories for SSL Certs
+  file: >
+   path={{ item }}
+   state=directory
+   owner=root group=root mode=0644
+  with_items:
+   - /etc/nginx/ssl/key
+   - /etc/nginx/ssl/crt
+
+- name: Debian | Copy SSL Keys
+  copy: >
+   src={{item}}
+   dest=/etc/nginx/ssl/key/{{item|basename}}
+   owner=root group=root mode=0644
+  with_fileglob: "{{ nginx_cfg_dir }}/ssl/key/*"
+  notify: restart nginx
+
+- name: Debian | Copy SSL Certs
+  copy: >
+   src={{item}}
+   dest=/etc/nginx/ssl/crt/{{item|basename}}
+   owner=root group=root mode=0644
+  with_fileglob: "{{ nginx_cfg_dir }}/ssl/crt/*"
+  notify: restart nginx
