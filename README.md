@@ -1,56 +1,43 @@
 nginx
 =========
 
-This role is installing and managing Nginx.
+role to install and managing Nginx.
 
-The installation by default is done using the package. The configuration files
-copied to remote based on nginx_cfg_dir variable see example below.
+The installation by default is done using the package.
 
 
 Role Variables
 --------------
 
-`nginx_install.package` (OPTIONAL)
+`nginx_conf` (OPTIONAL)
 
-This variable defines the package to install
+  The main nginx configuration file (relative or full path).
+
+
+`nginx_sites_enabled` (OPTIONAL)
+
+  Relative or full path to sites-enabled folder any files from that directory
+  will be copied to remote.
+
+
+`nginx_conf_d` (OPTIONAL)
+
+  Relative or full path to additional configuration files will be copied to
+  remote's conf.d directory.
+
+`nginx_ssl_keys` and `nginx_ssl_certs` (OPTIONAL)
+
+   Relative or full path to directories to copy the SSL keys and certs from.
 
 ```
 defaults/main.yml
 
----
 nginx_install:
- package: nginx
+ type: pkg # can be src or pkg
+ # Following variables only for installation from source
+ src_file: http://nginx.org/download/nginx-1.9.5.tar.gz
+ src_file_sha256: 48e2787a6b245277e37cb7c5a31b1549a0bbacf288aa4731baacf9eaacdb481b
 ```
-
-`nginx_cfg_dir` (REQUIRED)
-
-This variable defines the full path to the configuration files to be copied.
-
-Example:
-
-```
-group_vars/us-east-1a-prod-web.yml
-
----
-nginx_cfg_dir: /etc/ansible/group_files/us-east-1a-prod-web/nginx
-```
-
-The actual directory.
-```
-/etc/ansible/group_files/us-east-1a-prod-web/nginx
-.
-├── conf.d
-│   └── additional_config.conf
-├── nginx.conf
-├── sites-enabled
-│   └── example.org
-└── ssl
-    ├── crt
-    │   └── file1.crt
-    └── key
-        └── file1.key
-```
-
 
 License
 -------
@@ -63,4 +50,4 @@ Author Information
 
 Tal Lannder
 
-tallannder@gmail.com
+tal@pjili.org

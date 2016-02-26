@@ -1,63 +1,82 @@
 ---
-- name: Debian | Make sure the ansible required dependencies are installed
-  apt: >
+- name: Debian | install dependencies
+  apt:
    pkg=python-pycurl
    update_cache=yes
    state=latest
 
-- name: Debian | Add the nginx PPA repository
-  apt_repository: >
+
+- name: Debian | add the nginx PPA repository
+  apt_repository:
    repo=ppa:nginx/stable
 
-- name: Debian | Install nginx
-  apt: >
-   pkg={{ nginx_install.package }}
+
+- name: Debian | install nginx
+  apt:
+   pkg=nginx
    update_cache=yes
-   state=present
+   state=latest
 
-- name: Debian | Copy the main configuration file
-  template: >
-   src={{ nginx_cfg_dir }}/nginx.conf
+
+- name: Debian | copy the main configuration file
+  template:
+   src={{ nginx_conf }}
    dest=/etc/nginx/nginx.conf
-   owner=root group=root mode=0644
+   owner=root
+   group=root
+   mode=0644
+  when: nginx_conf is defined
   notify: restart nginx
 
-- name: Debian | Copy Sites Enabled
-  template: >
+
+- name: Debian | copy sites-enabled
+  template:
    src={{ item }}
-   dest=/etc/nginx/sites-enabled/
-   owner=root group=root mode=0644
-  with_fileglob: "{{ nginx_cfg_dir }}/sites-enabled/*"
+   dest=/etc/nginx/sites-enabled/{{ item | basename }}
+   owner=root
+   group=root
+   mode=0644
+  with_fileglob: "{{ nginx_sites_enabled | default([]) }}/*"
   notify: restart nginx
 
-- name: Debian | Copy config files from conf.d/*.conf
-  copy: >
+
+- name: Debian | copy config files to conf.d
+  copy:
    src={{ item }}
-   dest=/etc/nginx/conf.d/
-  with_fileglob: "{{ nginx_cfg_dir }}/conf.d/*.conf"
+   dest=/etc/nginx/conf.d/{{ item | basename }}
+  with_fileglob: "{{ nginx_conf_d | default([]) }}/*.conf"
   notify: restart nginx
 
-- name: Debian | Create Directories for SSL Certs
-  file: >
+
+- name: Debian | create directories for SSL certs
+  file:
    path={{ item }}
    state=directory
-   owner=root group=root mode=0644
+   owner=root
+   group=root
+   mode=0644
   with_items:
    - /etc/nginx/ssl/key
    - /etc/nginx/ssl/crt
 
-- name: Debian | Copy SSL Keys
-  copy: >
+
+- name: Debian | copy SSL keys
+  copy:
    src={{item}}
-   dest=/etc/nginx/ssl/key/{{item|basename}}
-   owner=root group=root mode=0644
-  with_fileglob: "{{ nginx_cfg_dir }}/ssl/key/*"
+   dest=/etc/nginx/ssl/key/{{ item | basename }}
+   owner=root
+   group=root
+   mode=0644
+  with_fileglob: "{{ nginx_ssl_keys | default([]) }}/*"
   notify: restart nginx
 
-- name: Debian | Copy SSL Certs
-  copy: >
+
+- name: Debian | copy SSL certs
+  copy:
    src={{item}}
-   dest=/etc/nginx/ssl/crt/{{item|basename}}
-   owner=root group=root mode=0644
-  with_fileglob: "{{ nginx_cfg_dir }}/ssl/crt/*"
+   dest=/etc/nginx/ssl/crt/{{ item | basename }}
+   owner=root
+   group=root
+   mode=0644
+  with_fileglob: "{{ nginx_ssl_certs | default([]) }}/*"
   notify: restart nginx
