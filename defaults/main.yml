@@ -4,3 +4,6 @@ nginx_install:
  # Following variables only for installation from source
  src_file: http://nginx.org/download/nginx-1.9.5.tar.gz
  src_file_sha256: 48e2787a6b245277e37cb7c5a31b1549a0bbacf288aa4731baacf9eaacdb481b
+
+nginx_remove_default_site: true
+nginx_generate_dhparam: true

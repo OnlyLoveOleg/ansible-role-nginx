@@ -29,6 +29,14 @@
   notify: restart nginx
 
 
+- name: Debian | remove default site from sites-enabled
+  file:
+   path=/etc/nginx/sites-enabled/default
+   state=absent
+  when: nginx_remove_default_site
+  notify: restart nginx
+
+
 - name: Debian | copy sites-enabled
   template:
    src={{ item }}
@@ -46,6 +54,14 @@
    dest=/etc/nginx/conf.d/{{ item | basename }}
   with_fileglob: "{{ nginx_conf_d | default([]) }}/*.conf"
   notify: restart nginx
+
+
+- name: Debian | generate generate strong DHE parameter
+  command: openssl dhparam -out dhparam.pem 4096
+  args:
+    chdir: /etc/ssl/certs
+    creates: /etc/ssl/certs/dhparam.pem
+  when: nginx_generate_dhparam
 
 
 - name: Debian | create directories for SSL certs
